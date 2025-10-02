@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Info</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .info { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+        .error { background: #ffe0e0; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Debug Information</h1>
+
+    <div class="info">
+        <h3>Environment Variables:</h3>
+        <p>SHOPEE_PARTNER_ID: {{ partner_id }}</p>
+        <p>SHOPEE_PARTNER_KEY: {{ partner_key[:10] }}...</p>
+        <p>SHOPEE_REDIRECT_URI: {{ redirect_uri }}</p>
+        <p>BASE_URL: {{ base_url }}</p>
+        <p>FLASK_ENV: {{ flask_env }}</p>
+    </div>
+
+    <div class="info">
+        <h3>Request Info:</h3>
+        <p>Host URL: {{ host_url }}</p>
+        <p>URL: {{ url }}</p>
+        <p>Timestamp: {{ timestamp }}</p>
+    </div>
+
+    <div class="info">
+        <h3>Signature Test:</h3>
+        <p>API Path: /api/v2/shop/auth_partner</p>
+        <p>Base String: {{ base_string }}</p>
+        <p>Generated Signature: {{ signature }}</p>
+    </div>
+
+    <div class="info">
+        <h3>Authorization URL:</h3>
+        <p style="word-break: break-all;">{{ auth_url }}</p>
+        <a href="{{ auth_url }}" target="_blank">Test Authorization</a>
+    </div>
+</body>
+</html>

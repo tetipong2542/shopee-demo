@@ -103,16 +103,20 @@ def api_status():
         }
     })
 
-@app.route('/auth/login')
-def auth_login():
-    """Step 1: Generate authorization URL and redirect"""
+@app.route('/debug')
+def debug():
+    """Debug page for testing"""
     timestamp = int(time.time())
     api_path = '/api/v2/shop/auth_partner'
 
-    # Use correct redirect URI for Railway
-    redirect_uri = request.host_url + 'auth/callback'
+    redirect_uri = os.getenv('SHOPEE_REDIRECT_URI', request.host_url + 'auth/callback')
 
-    signature = generate_signature(api_path, timestamp)
+    base_string = f"{PARTNER_ID}{api_path}{timestamp}"
+    signature = hmac.new(
+        PARTNER_KEY.encode('utf-8'),
+        base_string.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
 
     params = {
         'partner_id': PARTNER_ID,
@@ -120,6 +124,54 @@ def auth_login():
         'sign': signature,
         'redirect': redirect_uri
     }
+
+    auth_url = f"{BASE_URL}{api_path}?{urlencode(params)}"
+
+    return render_template('debug.html',
+        partner_id=os.getenv('SHOPEE_PARTNER_ID', 'NOT SET'),
+        partner_key=os.getenv('SHOPEE_PARTNER_KEY', 'NOT SET'),
+        redirect_uri=redirect_uri,
+        base_url=BASE_URL,
+        flask_env=os.getenv('FLASK_ENV', 'NOT SET'),
+        host_url=request.host_url,
+        url=request.url,
+        timestamp=timestamp,
+        base_string=base_string,
+        signature=signature,
+        auth_url=auth_url
+    )
+
+@app.route('/auth/login')
+def auth_login():
+    """Step 1: Generate authorization URL and redirect"""
+    timestamp = int(time.time())
+    api_path = '/api/v2/shop/auth_partner'
+
+    # Use correct redirect URI for Railway
+    redirect_uri = os.getenv('SHOPEE_REDIRECT_URI', request.host_url + 'auth/callback')
+
+    # Generate signature for auth_partner API
+    # For auth_partner, base_string = partner_id + api_path + timestamp
+    base_string = f"{PARTNER_ID}{api_path}{timestamp}"
+    signature = hmac.new(
+        PARTNER_KEY.encode('utf-8'),
+        base_string.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
+
+    params = {
+        'partner_id': PARTNER_ID,
+        'timestamp': timestamp,
+        'sign': signature,
+        'redirect': redirect_uri
+    }
+
+    # Debug logging (remove in production)
+    print(f"Auth login debug:")
+    print(f"  Base string: {base_string}")
+    print(f"  Redirect URI: {redirect_uri}")
+    print(f"  Partner ID: {PARTNER_ID}")
+    print(f"  Timestamp: {timestamp}")
 
     auth_url = f"{BASE_URL}{api_path}?{urlencode(params)}"
 
@@ -139,13 +191,12 @@ def auth_callback():
     # Exchange code for access token
     timestamp = int(time.time())
     api_path = '/api/v2/auth/token/get'
-    signature = generate_signature(api_path, timestamp)
 
+    # For token/get, no signature needed in the URL
     url = f"{BASE_URL}{api_path}"
     params = {
         'partner_id': PARTNER_ID,
-        'timestamp': timestamp,
-        'sign': signature
+        'timestamp': timestamp
     }
 
     body = {
