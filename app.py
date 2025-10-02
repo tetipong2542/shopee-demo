@@ -92,7 +92,8 @@ def api_status():
     """API status endpoint"""
     return jsonify({
         'status': 'running',
-        'mode': 'TEST',
+        'mode': 'PRODUCTION' if os.getenv('FLASK_ENV') == 'production' else 'TEST',
+        'host_url': request.host_url,
         'endpoints': {
             'auth': '/auth/login',
             'callback': '/auth/callback',
@@ -107,13 +108,17 @@ def auth_login():
     """Step 1: Generate authorization URL and redirect"""
     timestamp = int(time.time())
     api_path = '/api/v2/shop/auth_partner'
+
+    # Use correct redirect URI for Railway
+    redirect_uri = request.host_url + 'auth/callback'
+
     signature = generate_signature(api_path, timestamp)
 
     params = {
         'partner_id': PARTNER_ID,
         'timestamp': timestamp,
         'sign': signature,
-        'redirect': REDIRECT_URI
+        'redirect': redirect_uri
     }
 
     auth_url = f"{BASE_URL}{api_path}?{urlencode(params)}"
@@ -121,6 +126,7 @@ def auth_login():
     return redirect(auth_url)
 
 @app.route('/auth/callback')
+@app.route('/callback')
 def auth_callback():
     """Step 2: Handle callback and exchange code for access token"""
     code = request.args.get('code')
