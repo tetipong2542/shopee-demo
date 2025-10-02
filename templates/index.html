@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopee API Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-shopping-cart text-orange-500 mr-2"></i>
+                Shopee API Manager
+            </h1>
+            <p class="text-gray-600">จัดการร้านค้าและอัปเดตสินค้าบน Shopee</p>
+        </header>
+
+        <!-- Status Card -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold mb-2">สถานะระบบ</h2>
+                    <p class="text-gray-600">โหมด: <span class="text-orange-500 font-bold">TEST</span></p>
+                </div>
+                <div class="text-green-500">
+                    <i class="fas fa-circle text-2xl animate-pulse"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Connected Shops -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">ร้านค้าที่เชื่อมต่อแล้ว</h2>
+                <button onclick="addShop()" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition">
+                    <i class="fas fa-plus mr-2"></i>เพิ่มร้านค้า
+                </button>
+            </div>
+
+            <div id="shopsList" class="space-y-3">
+                <!-- Shops will be loaded here -->
+            </div>
+
+            <div id="emptyState" class="text-center py-8 text-gray-400">
+                <i class="fas fa-store text-6xl mb-4"></i>
+                <p>ยังไม่มีร้านค้าที่เชื่อมต่อ</p>
+                <p class="text-sm">กดปุ่ม "เพิ่มร้านค้า" เพื่อเริ่มเชื่อมต่อ</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">การดำเนินการด่วน</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="showBatchUpdate()" class="bg-blue-500 text-white p-4 rounded hover:bg-blue-600 transition">
+                    <i class="fas fa-sync-alt mr-2"></i>อัปเดตหลายสินค้า
+                </button>
+                <button onclick="showLogs()" class="bg-gray-500 text-white p-4 rounded hover:bg-gray-600 transition">
+                    <i class="fas fa-history mr-2"></i>ดูประวัติการทำงาน
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Shop Modal -->
+    <div id="addShopModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 class="text-xl font-semibold mb-4">เชื่อมต่อร้านค้าใหม่</h3>
+            <p class="text-gray-600 mb-4">กดปุ่มด้านล่างเพื่อไปยังหน้าล็อกอิน Shopee</p>
+            <button onclick="connectShop()" class="w-full bg-orange-500 text-white py-3 rounded hover:bg-orange-600 transition">
+                <i class="fas fa-link mr-2"></i>เชื่อมต่อกับ Shopee
+            </button>
+            <button onclick="closeModal()" class="w-full mt-2 bg-gray-300 text-gray-700 py-3 rounded hover:bg-gray-400 transition">
+                ยกเลิก
+            </button>
+        </div>
+    </div>
+
+    <!-- Batch Update Modal -->
+    <div id="batchUpdateModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <h3 class="text-xl font-semibold mb-4">อัปเดตหลายสินค้า</h3>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">เลือกร้านค้า</label>
+                <select id="shopSelect" class="w-full border rounded p-2">
+                    <option value="">-- เลือกร้านค้า --</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">ข้อมูลสินค้า (JSON)</label>
+                <textarea id="batchData" rows="10" class="w-full border rounded p-2 font-mono text-sm"
+                    placeholder='[
+  {"item_id": 123456, "price": 299.00, "stock": 100},
+  {"item_id": 789012, "price": 450.50, "stock": 50}
+]'></textarea>
+            </div>
+            <button onclick="executeBatchUpdate()" class="w-full bg-blue-500 text-white py-3 rounded hover:bg-blue-600 transition">
+                <i class="fas fa-sync-alt mr-2"></i>ดำเนินการอัปเดต
+            </button>
+            <button onclick="closeBatchModal()" class="w-full mt-2 bg-gray-300 text-gray-700 py-3 rounded hover:bg-gray-400 transition">
+                ยกเลิก
+            </button>
+            <div id="batchResult" class="mt-4 hidden">
+                <h4 class="font-semibold mb-2">ผลลัพธ์:</h4>
+                <pre id="batchResultContent" class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded shadow hidden z-50">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span id="toastMessage">ดำเนินการสำเร็จ</span>
+    </div>
+
+    <script>
+        // Load shops from localStorage
+        let shops = JSON.parse(localStorage.getItem('shopee_shops') || '[]');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderShops();
+        });
+
+        function renderShops() {
+            const shopsList = document.getElementById('shopsList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (shops.length === 0) {
+                shopsList.innerHTML = '';
+                emptyState.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+                shopsList.innerHTML = shops.map((shop, index) => `
+                    <div class="border rounded p-4 hover:bg-gray-50 transition">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-semibold text-lg">
+                                    <i class="fas fa-store text-orange-500 mr-2"></i>
+                                    ${shop.name || `ร้านค้า #${shop.shop_id}`}
+                                </h3>
+                                <p class="text-gray-600 text-sm">Shop ID: ${shop.shop_id}</p>
+                                <p class="text-gray-500 text-xs">เชื่อมต่อเมื่อ: ${new Date(shop.connected_at).toLocaleString('th')}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="updateProducts(${shop.shop_id})" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                                    <i class="fas fa-edit mr-1"></i>อัปเดตสินค้า
+                                </button>
+                                <button onclick="disconnectShop(${index})" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">
+                                    <i class="fas fa-unlink mr-1"></i>ตัดการเชื่อมต่อ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function addShop() {
+            document.getElementById('addShopModal').classList.remove('hidden');
+        }
+
+        function connectShop() {
+            window.open('/auth/login', '_blank');
+            closeModal();
+            showToast('กรุณาอนุญาตการเชื่อมต่อในหน้าต่างใหม่');
+        }
+
+        function disconnectShop(index) {
+            if (confirm('ต้องการตัดการเชื่อมต่อร้านค้านี้ใช่หรือไม่?')) {
+                shops.splice(index, 1);
+                localStorage.setItem('shopee_shops', JSON.stringify(shops));
+                renderShops();
+                updateShopSelect();
+                showToast('ตัดการเชื่อมต่อแล้ว');
+            }
+        }
+
+        function updateProducts(shopId) {
+            const price = prompt('ราคาใหม่:');
+            const stock = prompt('จำนวนสต็อกใหม่:');
+
+            if (price || stock) {
+                const data = {
+                    item_id: prompt('กรุณาใส่ Item ID:'),
+                    ...(price && { price: parseFloat(price) }),
+                    ...(stock && { stock: parseInt(stock) })
+                };
+
+                fetch('/api/update-price', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                })
+                .then(res => res.json())
+                .then(result => {
+                    console.log(result);
+                    showToast('อัปเดตสำเร็จ');
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('เกิดข้อผิดพลาด', 'error');
+                });
+            }
+        }
+
+        function showBatchUpdate() {
+            document.getElementById('batchUpdateModal').classList.remove('hidden');
+            updateShopSelect();
+        }
+
+        function updateShopSelect() {
+            const select = document.getElementById('shopSelect');
+            select.innerHTML = '<option value="">-- เลือกร้านค้า --</option>' +
+                shops.map(shop => `<option value="${shop.shop_id}">${shop.name || `ร้าน #${shop.shop_id}`}</option>`).join('');
+        }
+
+        function executeBatchUpdate() {
+            const shopId = document.getElementById('shopSelect').value;
+            const data = document.getElementById('batchData').value;
+
+            if (!shopId || !data) {
+                alert('กรุณาเลือกร้านค้าและกรอกข้อมูลสินค้า');
+                return;
+            }
+
+            try {
+                const items = JSON.parse(data);
+                fetch('/api/batch-update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items })
+                })
+                .then(res => res.json())
+                .then(result => {
+                    document.getElementById('batchResultContent').textContent = JSON.stringify(result, null, 2);
+                    document.getElementById('batchResult').classList.remove('hidden');
+                    showToast('อัปเดตหลายสินค้าสำเร็จ');
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('เกิดข้อผิดพลาด', 'error');
+                });
+            } catch (e) {
+                alert('รูปแบบ JSON ไม่ถูกต้อง');
+            }
+        }
+
+        function showLogs() {
+            alert('ฟีเจอร์ประวัติการทำงานจะเพิ่มในเวอร์ชันถัดไป');
+        }
+
+        function closeModal() {
+            document.getElementById('addShopModal').classList.add('hidden');
+        }
+
+        function closeBatchModal() {
+            document.getElementById('batchUpdateModal').classList.add('hidden');
+            document.getElementById('batchResult').classList.add('hidden');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+
+            toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded shadow z-50 ${
+                type === 'error' ? 'bg-red-500' : 'bg-green-500'
+            } text-white`;
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
