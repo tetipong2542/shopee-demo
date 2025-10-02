@@ -114,11 +114,18 @@ def debug():
     timestamp = int(time.time())
     api_path = '/api/v2/shop/auth_partner'
 
-    # Force HTTPS for Railway
-    host_url = request.host_url
-    if 'railway.app' in host_url and host_url.startswith('http://'):
-        host_url = host_url.replace('http://', 'https://')
-    redirect_uri = os.getenv('SHOPEE_REDIRECT_URI', host_url + 'auth/callback')
+    # Get the correct host URL - check headers for Railway
+    original_host = request.host_url
+    forwarded_proto = request.headers.get('X-Forwarded-Proto', 'http')
+
+    # Use HTTPS if forwarded header says so
+    if forwarded_proto == 'https' and original_host.startswith('http://'):
+        host_url = original_host.replace('http://', 'https://')
+    else:
+        host_url = original_host
+
+    # For Railway, always use the environment variable redirect URI
+    redirect_uri = os.getenv('SHOPEE_REDIRECT_URI')
 
     base_string = f"{PARTNER_ID}{api_path}{timestamp}"
     signature = hmac.new(
@@ -143,6 +150,7 @@ def debug():
         base_url=BASE_URL,
         flask_env=os.getenv('FLASK_ENV', 'NOT SET'),
         host_url=host_url,  # Use corrected host URL
+        original_host_url=original_host,  # Show original host for debugging
         url=request.url,
         timestamp=timestamp,
         base_string=base_string,
@@ -156,12 +164,16 @@ def auth_login():
     timestamp = int(time.time())
     api_path = '/api/v2/shop/auth_partner'
 
-    # Use correct redirect URI for Railway
-    # Force HTTPS for Railway
-    host_url = request.host_url
-    if 'railway.app' in host_url and host_url.startswith('http://'):
-        host_url = host_url.replace('http://', 'https://')
-    redirect_uri = os.getenv('SHOPEE_REDIRECT_URI', host_url + 'auth/callback')
+    # Always use the redirect URI from environment variable
+    redirect_uri = os.getenv('SHOPEE_REDIRECT_URI')
+
+    # Debug logging
+    print(f"\n=== AUTH LOGIN DEBUG ===")
+    print(f"Partner ID: {PARTNER_ID}")
+    print(f"API Path: {api_path}")
+    print(f"Redirect URI: {redirect_uri}")
+    print(f"Timestamp: {timestamp}")
+    print(f"========================\n")
 
     # Generate signature for auth_partner API
     # For auth_partner, base_string = partner_id + api_path + timestamp
