@@ -90,10 +90,15 @@ def index():
 @app.route('/api/status')
 def api_status():
     """API status endpoint"""
+    # Force HTTPS for Railway
+    host_url = request.host_url
+    if 'railway.app' in host_url and host_url.startswith('http://'):
+        host_url = host_url.replace('http://', 'https://')
+
     return jsonify({
         'status': 'running',
         'mode': 'PRODUCTION' if os.getenv('FLASK_ENV') == 'production' else 'TEST',
-        'host_url': request.host_url,
+        'host_url': host_url,
         'endpoints': {
             'auth': '/auth/login',
             'callback': '/auth/callback',
@@ -109,7 +114,11 @@ def debug():
     timestamp = int(time.time())
     api_path = '/api/v2/shop/auth_partner'
 
-    redirect_uri = os.getenv('SHOPEE_REDIRECT_URI', request.host_url + 'auth/callback')
+    # Force HTTPS for Railway
+    host_url = request.host_url
+    if 'railway.app' in host_url and host_url.startswith('http://'):
+        host_url = host_url.replace('http://', 'https://')
+    redirect_uri = os.getenv('SHOPEE_REDIRECT_URI', host_url + 'auth/callback')
 
     base_string = f"{PARTNER_ID}{api_path}{timestamp}"
     signature = hmac.new(
@@ -133,7 +142,7 @@ def debug():
         redirect_uri=redirect_uri,
         base_url=BASE_URL,
         flask_env=os.getenv('FLASK_ENV', 'NOT SET'),
-        host_url=request.host_url,
+        host_url=host_url,  # Use corrected host URL
         url=request.url,
         timestamp=timestamp,
         base_string=base_string,
@@ -148,7 +157,11 @@ def auth_login():
     api_path = '/api/v2/shop/auth_partner'
 
     # Use correct redirect URI for Railway
-    redirect_uri = os.getenv('SHOPEE_REDIRECT_URI', request.host_url + 'auth/callback')
+    # Force HTTPS for Railway
+    host_url = request.host_url
+    if 'railway.app' in host_url and host_url.startswith('http://'):
+        host_url = host_url.replace('http://', 'https://')
+    redirect_uri = os.getenv('SHOPEE_REDIRECT_URI', host_url + 'auth/callback')
 
     # Generate signature for auth_partner API
     # For auth_partner, base_string = partner_id + api_path + timestamp
