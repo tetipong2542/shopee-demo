@@ -385,4 +385,10 @@ def batch_update():
 # ==================== RUN APPLICATION ====================
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Get port from environment (Railway) or use 5000 for local
+    port = int(os.getenv('PORT', 5000))
+
+    # Disable debug mode in production
+    debug_mode = os.getenv('FLASK_ENV', 'development') == 'development'
+
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
