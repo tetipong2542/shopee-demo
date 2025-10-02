@@ -203,7 +203,9 @@ def auth_login():
     return redirect(auth_url)
 
 @app.route('/auth/callback')
+@app.route('/auth/callback/')
 @app.route('/callback')
+@app.route('/callback/')
 def auth_callback():
     """Step 2: Handle callback and exchange code for access token"""
     code = request.args.get('code')

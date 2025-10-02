@@ -34,12 +34,20 @@
         <p>API Path: /api/v2/shop/auth_partner</p>
         <p>Base String: {{ base_string }}</p>
         <p>Generated Signature: {{ signature }}</p>
+        <p><strong>Redirect URI:</strong> {{ redirect_uri }}</p>
     </div>
 
     <div class="info">
         <h3>Authorization URL:</h3>
         <p style="word-break: break-all;">{{ auth_url }}</p>
         <a href="{{ auth_url }}" target="_blank">Test Authorization</a>
+    </div>
+
+    <div class="info">
+        <h3>Redirect URL Expected:</h3>
+        <p>Expected: https://shopee-demo-production.up.railway.app/auth/callback</p>
+        <p>Current in vars: {{ redirect_uri }}</p>
+        <p><em>Make sure no trailing slash in Shopee Partner Portal!</em></p>
     </div>
 </body>
 </html>
