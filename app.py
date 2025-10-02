@@ -19,10 +19,19 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your-secret-key-change-this')
 shops_storage = {}
 
 # Shopee API Configuration
-PARTNER_ID = int(os.getenv('SHOPEE_PARTNER_ID'))
+PARTNER_ID = os.getenv('SHOPEE_PARTNER_ID')
 PARTNER_KEY = os.getenv('SHOPEE_PARTNER_KEY')
 REDIRECT_URI = os.getenv('SHOPEE_REDIRECT_URI')
 BASE_URL = os.getenv('SHOPEE_BASE_URL', 'https://partner.test-stable.shopeemobile.com')
+
+# Validate required environment variables
+if not PARTNER_ID or not PARTNER_KEY:
+    print("ERROR: Missing required environment variables")
+    print("Please set SHOPEE_PARTNER_ID and SHOPEE_PARTNER_KEY")
+    print("For Railway deployment, set these in your project's environment variables")
+    exit(1)
+
+PARTNER_ID = int(PARTNER_ID)
 
 # ==================== HELPER FUNCTIONS ====================
 

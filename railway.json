@@ -1,0 +1,11 @@
+{
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "python app.py",
+    "healthcheckPath": "/api/status",
+    "healthcheckTimeout": 100,
+    "port": 5000
+  }
+}
