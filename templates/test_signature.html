@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Signature</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+        .test-box { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { background: #e8f5e9; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .error { background: #ffebee; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .step { margin: 20px 0; padding: 15px; background: #fff3e0; border-left: 4px solid #ff9800; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Shopee Signature Test Tool</h1>
+
+    <div class="step">
+        <h3>ขั้นที่ 1: ตรวจสอบข้อมูลพื้นฐาน</h3>
+        <p>Partner ID: {{ partner_id }}</p>
+        <p>Partner Key: {{ partner_key[:15] }}...</p>
+        <p>Timestamp: {{ timestamp }}</p>
+        <p>API Path: /api/v2/shop/auth_partner</p>
+    </div>
+
+    <div class="step">
+        <h3>ขั้นที่ 2: สร้าง Base String</h3>
+        <p>รูปแบบ: partner_id + api_path + timestamp</p>
+        <p><strong>{{ partner_id }} + /api/v2/shop/auth_partner + {{ timestamp }}</strong></p>
+        <p>Base String: <code>{{ base_string }}</code></p>
+    </div>
+
+    <div class="step">
+        <h3>ขั้นที่ 3: สร้าง HMAC-SHA256</h3>
+        <p>ใช้ Partner Key เป็น secret key</p>
+        <p>Signature: <code>{{ signature }}</code></p>
+    </div>
+
+    <div class="test-box">
+        <h3>URL ที่สร้าง:</h3>
+        <p style="word-break: break-all; background: #f0f0f0; padding: 10px; border-radius: 4px;">
+            {{ auth_url }}
+        </p>
+        <br>
+        <a href="{{ auth_url }}" target="_blank">
+            <button>🚀 ทดสอบ Authorization</button>
+        </a>
+    </div>
+
+    <div class="test-box">
+        <h3>ตรวจสอบใน Shopee Partner Portal:</h3>
+        <p>1. ไปที่: <a href="https://partner.test-stable.shopeemobile.com/" target="_blank">partner.test-stable.shopeemobile.com</a></p>
+        <p>2. ไปที่ App Settings</p>
+        <p>3. ใน Redirect URLs ให้ใส่: <strong>https://shopee-demo-production.up.railway.app/auth/callback</strong></p>
+        <p>4. ตรวจสอบว่า Partner ID และ Partner Key ตรงกับที่ใช้ใน app</p>
+    </div>
+
+    <div class="test-box">
+        <h3>Debug Info:</h3>
+        <p>Environment: {{ mode }}</p>
+        <p>Host: {{ host_url }}</p>
+        <p>Redirect URI: {{ redirect_uri }}</p>
+    </div>
+
+    <script>
+        // Auto-refresh every 30 seconds
+        setTimeout(() => {
+            window.location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>

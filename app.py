@@ -158,6 +158,43 @@ def debug():
         auth_url=auth_url
     )
 
+@app.route('/test-signature')
+def test_signature():
+    """Test signature generation page"""
+    timestamp = int(time.time())
+    api_path = '/api/v2/shop/auth_partner'
+
+    # Always use the environment variable redirect URI
+    redirect_uri = os.getenv('SHOPEE_REDIRECT_URI')
+
+    base_string = f"{PARTNER_ID}{api_path}{timestamp}"
+    signature = hmac.new(
+        PARTNER_KEY.encode('utf-8'),
+        base_string.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
+
+    params = {
+        'partner_id': PARTNER_ID,
+        'timestamp': timestamp,
+        'sign': signature,
+        'redirect': redirect_uri
+    }
+
+    auth_url = f"{BASE_URL}{api_path}?{urlencode(params)}"
+
+    return render_template('test_signature.html',
+        partner_id=str(PARTNER_ID),
+        partner_key=PARTNER_KEY,
+        timestamp=timestamp,
+        base_string=base_string,
+        signature=signature,
+        auth_url=auth_url,
+        mode='PRODUCTION' if os.getenv('FLASK_ENV') == 'production' else 'TEST',
+        host_url=os.getenv('SHOPEE_REDIRECT_URI', 'NOT SET'),
+        redirect_uri=redirect_uri
+    )
+
 @app.route('/auth/login')
 def auth_login():
     """Step 1: Generate authorization URL and redirect"""
